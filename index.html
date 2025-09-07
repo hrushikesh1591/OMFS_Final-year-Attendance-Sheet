@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Year Attendance Sheet Oral Surgery</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .student-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .student-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            background-color: #f9f9f9;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .student-card.absent {
+            background-color: #ffcccc;
+            border-color: #cc0000;
+        }
+        
+        .student-card.inactive {
+            background-color: #d1d1d1;
+            border-color: #b1b1b1;
+            cursor: not-allowed;
+        }
+
+        .student-card input[type="checkbox"] {
+            display: none;
+        }
+
+        .student-card label {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #555;
+            padding: 5px;
+        }
+
+        .student-card.absent label {
+            text-decoration: line-through;
+            color: #cc0000;
+        }
+
+        .student-card.inactive label {
+            color: #777;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            text-align: center;
+        }
+
+        .results h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .export-buttons button {
+            background-color: #007bff;
+        }
+
+        .export-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 600px) {
+            .student-list {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Final Year Attendance Sheet Oral Surgery</h1>
+        <form id="attendanceForm">
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date">
+            </div>
+            <div class="form-group">
+                <label for="batchName">Batch Name:</label>
+                <input type="text" id="batchName" name="batchName">
+            </div>
+            <div class="form-group">
+                <label for="lectureTopic">Lecture Topic:</label>
+                <input type="text" id="lectureTopic" name="lectureTopic">
+            </div>
+            <div class="form-group">
+                <label for="facultyName">Faculty Name:</label>
+                <select id="facultyName" name="facultyName">
+                    <option value="">-- Select Faculty --</option>
+                    <option value="Dr. Anju Gopinath">Dr. Anju Gopinath</option>
+                    <option value="Dr. Bipin Sadhwani">Dr. Bipin Sadhwani</option>
+                    <option value="Dr. Hetal Amipara">Dr. Hetal Amipara</option>
+                    <option value="Dr. Hrushikesh Gosai">Dr. Hrushikesh Gosai</option>
+                    <option value="Dr. Jigar Dhuvad">Dr. Jigar Dhuvad</option>
+                    <option value="Dr. Jitendra Kumar Sinha">Dr. Jitendra Kumar Sinha</option>
+                    <option value="Dr. Prashant Malik">Dr. Prashant Malik</option>
+                    <option value="Dr. Shalin Shah">Dr. Shalin Shah</option>
+                    <option value="Dr. Sonal Anchlia">Dr. Sonal Anchlia</option>
+                    <option value="Dr. Zibran Khan">Dr. Zibran Khan</option>
+                </select>
+            </div>
+            <div class="student-list" id="studentList">
+                <!-- Student cards will be generated here by JavaScript -->
+            </div>
+            <button type="submit">Submit Attendance</button>
+        </form>
+        <div id="results" class="results" style="display: none;">
+            <!-- Attendance results will be displayed here -->
+            <div id="summary"></div>
+            <div class="export-buttons">
+                <button id="exportCsv">Export as CSV</button>
+                <button id="exportPdf">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // IMPORTANT: You must replace this with your actual Google Apps Script URL
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpRHQT3DNQV3qEzAMBbdootpxeiNQA96nHEYXhoC_YVdAanzUoWXXKgJs4O-QsKJ1t_w/exec';
+            const totalStudents = 125;
+            const inactiveStudents = [6, 10, 15, 31, 34, 35, 39, 40, 51, 64, 68, 69, 71, 87, 92, 97, 111, 114, 123];
+            const studentList = document.getElementById('studentList');
+            const attendanceForm = document.getElementById('attendanceForm');
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('summary');
+            const exportCsvBtn = document.getElementById('exportCsv');
+            const exportPdfBtn = document.getElementById('exportPdf');
+            const dateInput = document.getElementById('date');
+            const batchNameInput = document.getElementById('batchName');
+            const lectureTopicInput = document.getElementById('lectureTopic');
+            const facultyNameInput = document.getElementById('facultyName');
+
+            // Set default date to today
+            dateInput.valueAsDate = new Date();
+
+            // Generate student list from 1 to 125
+            for (let i = 1; i <= totalStudents; i++) {
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                
+                const isInactive = inactiveStudents.includes(i);
+                if (isInactive) {
+                    studentCard.classList.add('inactive');
+                }
+
+                studentCard.innerHTML = `
+                    <label for="roll-${i}">${i}</label>
+                    <input type="checkbox" id="roll-${i}" name="roll-${i}" ${isInactive ? 'disabled' : 'checked'}>
+                `;
+                studentCard.addEventListener('click', () => {
+                    const checkbox = studentCard.querySelector('input');
+                    if (!checkbox.disabled) {
+                        checkbox.checked = !checkbox.checked;
+                        studentCard.classList.toggle('absent', !checkbox.checked);
+                    }
+                });
+                studentList.appendChild(studentCard);
+            }
+
+            attendanceForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const date = dateInput.value;
+                const batchName = batchNameInput.value;
+                const lectureTopic = lectureTopicInput.value;
+                const facultyName = facultyNameInput.value;
+
+                if (!date || !batchName || !lectureTopic || !facultyName) {
+                    alert('Please fill in all details before submitting.');
+                    return;
+                }
+
+                const attendanceData = [];
+                let presentCount = 0;
+                let absentCount = 0;
+
+                for (let i = 1; i <= totalStudents; i++) {
+                    const checkbox = document.getElementById(`roll-${i}`);
+                    if (checkbox.disabled) {
+                        attendanceData.push({ roll: i, status: 'Inactive' });
+                    } else if (checkbox.checked) {
+                        attendanceData.push({ roll: i, status: 'Present' });
+                        presentCount++;
+                    } else {
+                        attendanceData.push({ roll: i, status: 'Absent' });
+                        absentCount++;
+                    }
+                }
+
+                const postData = {
+                    date,
+                    batchName,
+                    lectureTopic,
+                    facultyName,
+                    attendance: attendanceData
+                };
+
+                // Send data to Google Apps Script
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(postData),
+                        mode: 'no-cors' // Use no-cors mode for Google Apps Script
+                    });
+                    
+                    // Since we're using no-cors, we can't check response.ok
+                    // or parse the JSON response. Assume success for now.
+                    displayResults(presentCount, absentCount, attendanceData);
+
+                } catch (error) {
+                    console.error('Error submitting attendance:', error);
+                    alert('Failed to submit attendance. Please check your internet connection and the script URL.');
+                }
+            });
+
+            function displayResults(presentCount, absentCount, attendanceData) {
+                summaryDiv.innerHTML = `
+                    <h3>Attendance Submitted Successfully!</h3>
+                    <p>Total Present: ${presentCount}</p>
+                    <p>Total Absent: ${absentCount}</p>
+                `;
+                resultsDiv.style.display = 'block';
+                localStorage.setItem('lastAttendance', JSON.stringify({ presentCount, absentCount, attendanceData }));
+            }
+
+            function getAbsentStudents(data) {
+                return data
+                    .filter(student => student.status === 'Absent')
+                    .map(student => student.roll)
+                    .join(', ');
+            }
+
+            exportCsvBtn.addEventListener('click', () => {
+                const lastData = JSON.parse(localStorage.getItem('lastAttendance'));
+                if (!lastData) {
+                    alert('No attendance data to export.');
+                    return;
+                }
+
+                const { date, batchName, lectureTopic, facultyName } = attendanceForm.elements;
+                const header = `Date,Batch Name,Lecture Topic,Faculty Name,Total Students,Present,Absent,Absent Roll Numbers\n`;
+                const absentRolls = getAbsentStudents(lastData.attendanceData);
+                const csvContent = `${date.value},${batchName.value},${lectureTopic.value},${facultyName.value},${totalStudents},${lastData.presentCount},${lastData.absentCount},"${absentRolls}"\n`;
+                
+                const blob = new Blob([header + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', 'attendance.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            exportPdfBtn.addEventListener('click', () => {
+                const lastData = JSON.parse(localStorage.getItem('lastAttendance'));
+                if (!lastData) {
+                    alert('No attendance data to export.');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const { date, batchName, lectureTopic, facultyName } = attendanceForm.elements;
+                
+                let y = 15;
+                const addText = (text, isBold = false) => {
+                    doc.setFont(undefined, isBold ? 'bold' : 'normal');
+                    doc.text(text, 15, y);
+                    y += 7;
+                };
+
+                addText('Final Year Oral Surgery Attendance Sheet', true);
+                y += 5;
+                addText(`Date: ${date.value}`);
+                addText(`Batch: ${batchName.value}`);
+                addText(`Lecture Topic: ${lectureTopic.value}`);
+                addText(`Faculty: ${facultyName.value}`);
+                y += 10;
+                addText('Attendance Summary', true);
+                addText(`Total Students: ${totalStudents}`);
+                addText(`Present: ${lastData.presentCount}`);
+                addText(`Absent: ${lastData.absentCount}`);
+                y += 10;
+                addText('Absent Roll Numbers:', true);
+                const absentRolls = getAbsentStudents(lastData.attendanceData);
+                doc.text(absentRolls, 15, y);
+                
+                doc.save('attendance.pdf');
+            });
+        });
+
+        function alert(message) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:999;';
+            modal.innerHTML = `
+                <div style="background-color:white;padding:20px;border-radius:10px;text-align:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);">
+                    <p>${message}</p>
+                    <button onclick="document.body.removeChild(this.parentElement.parentElement)" style="margin-top:10px;padding:8px 16px;background-color:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>
